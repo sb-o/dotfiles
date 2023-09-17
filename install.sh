@@ -1,30 +1,42 @@
+#!/bin/bash
 BASEDIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+CONFIGFILE=$HOME/.zshrc
+PLUGINSDIR=$HOME/.zsh_plugins
 
-if ! grep -q "source ${BASEDIR}/.aliases" $HOME/.zshrc; then
-    echo "source ${BASEDIR}/.aliases" >> $HOME/.zshrc
+# Create CONFIGFILE and PLUGINSDIR if don't already exist
+if [ ! -f $CONFIGFILE ]; then
+    touch $CONFIGFILE
+fi
+if [ ! -d $PLUGINSDIR ]; then
+    mkdir $PLUGINSDIR
 fi
 
-if ! grep -q "source ${BASEDIR}/.aliases" $HOME/.bashrc; then
-    echo "source ${BASEDIR}/.aliases" >> $HOME/.bashrc
-fi
+# Add all files in the source folder to the CONFIGFILE
+function dfi_add_source() { # $1 = file
+    if ! grep -q "source $1" $CONFIGFILE; then
+        echo "source $1" >> $CONFIGFILE
+    fi
+}
+for f in $(find $BASEDIR/source -maxdepth 1 -type f); do
+    if [ -f "$f" ]; then
+        dfi_add_source $f
+    fi
+done
 
-if ! grep -q "source ${BASEDIR}/.zshcustom" $HOME/.zshrc; then
-    echo "source ${BASEDIR}/.zshcustom" >> $HOME/.zshrc
-fi
+# Install and source plugins
+function dfi_install_and_source() { # $1 = plugin, $2 = repo, $3 = file
+    # Install
+    if [ ! -d "$PLUGINSDIR/$1" ]; then
+        git clone $2 $PLUGINSDIR/$1
+    fi
 
-if [ ! -d "$HOME/.zsh-syntax-highlighting" ]; then
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git $HOME/.zsh-syntax-highlighting
-fi
+    # Source
+    if ! grep -q "source $PLUGINSDIR/$1/$3" $CONFIGFILE; then
+        echo "source $PLUGINSDIR/$1/$3" >> $CONFIGFILE
+    fi
+}
 
-if ! grep -q "source $HOME/.zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ${ZDOTDIR:-$HOME}/.zshrc; then
-    echo "source $HOME/.zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" >> ${ZDOTDIR:-$HOME}/.zshrc
-fi
+dfi_install_and_source .zsh-syntax-highlighting https://github.com/zsh-users/zsh-syntax-highlighting.git zsh-syntax-highlighting.zsh
+dfi_install_and_source .zsh-autosuggestions https://github.com/zsh-users/zsh-autosuggestions zsh-autosuggestions.zsh
 
-if [ ! -d "$HOME/.zsh-autosuggestions" ]; then
-    git clone https://github.com/zsh-users/zsh-autosuggestions $HOME/.zsh-autosuggestions
-fi
-
-if ! grep -q "source $HOME/.zsh-autosuggestions/zsh-autosuggestions.zsh" ${ZDOTDIR:-$HOME}/.zshrc; then
-    echo "source $HOME/.zsh-autosuggestions/zsh-autosuggestions.zsh" >> ${ZDOTDIR:-$HOME}/.zshrc
-fi
 
