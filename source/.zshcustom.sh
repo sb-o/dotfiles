@@ -13,3 +13,5 @@ setopt HIST_FIND_NO_DUPS
 setopt HIST_IGNORE_SPACE
 setopt HIST_SAVE_NO_DUPS
 setopt HIST_REDUCE_BLANKS
+export ZSH_AUTOSUGGEST_HISTORY_IGNORE="(cd *|ls *|rm *|pwd)"
+export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=cyan,bold,underline"
