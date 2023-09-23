@@ -12,19 +12,19 @@ if [ ! -d $PLUGINSDIR ]; then
 fi
 
 # Add all files in the source folder to the CONFIGFILE
-function dfi_add_source() { # $1 = file
+_dfi_add_source() { # $1 = file
     if ! grep -q "source $1" $CONFIGFILE; then
         echo "source $1" >> $CONFIGFILE
     fi
 }
 for f in $(find $BASEDIR/source -maxdepth 1 -type f); do
     if [ -f "$f" ]; then
-        dfi_add_source $f
+        _dfi_add_source $f
     fi
 done
 
 # Install and source plugins
-function dfi_install_and_source() { # $1 = plugin, $2 = repo, $3 = file
+_dfi_install_and_source() { # $1 = plugin, $2 = repo, $3 = file
     # Install
     if [ ! -d "$PLUGINSDIR/$1" ]; then
         git clone $2 $PLUGINSDIR/$1
@@ -36,7 +36,7 @@ function dfi_install_and_source() { # $1 = plugin, $2 = repo, $3 = file
     fi
 }
 
-dfi_install_and_source .zsh-syntax-highlighting https://github.com/zsh-users/zsh-syntax-highlighting.git zsh-syntax-highlighting.zsh
-dfi_install_and_source .zsh-autosuggestions https://github.com/zsh-users/zsh-autosuggestions zsh-autosuggestions.zsh
+_dfi_install_and_source .zsh-syntax-highlighting https://github.com/zsh-users/zsh-syntax-highlighting.git zsh-syntax-highlighting.zsh
+_dfi_install_and_source .zsh-autosuggestions https://github.com/zsh-users/zsh-autosuggestions zsh-autosuggestions.zsh
 
-
+ 
