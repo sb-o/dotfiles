@@ -1,4 +1,4 @@
-PROMPT="%n@%~ > "
+PS1='%F{blue}%~ %(?.%F{green}.%F{red})%#%f '
 export HISTORY_IGNORE="(*ls*|*cat*|*AWS*|*SECRET*|*export*|*TOKEN*|*PASSWORD*)"
 export HISTFILE=$HOME/.zsh_history
 HISTSIZE=1000
