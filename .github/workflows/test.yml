@@ -1,0 +1,33 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [master, main, develop]
+  pull_request:
+    branches: [master, main, develop]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install zsh on Ubuntu
+        run: |
+          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+            sudo apt-get update
+            sudo apt-get -y install zsh
+          fi
+
+      - name: Install shellspec
+        run: ./scripts/install_shellspec.sh
+
+      - name: Install dotfiles
+        run: ./install.sh
+
+      - name: Run tests
+        run: ./test.sh
