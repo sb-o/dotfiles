@@ -11,13 +11,18 @@ if [ ! -d $PLUGINSDIR ]; then
     mkdir $PLUGINSDIR
 fi
 
+# Add utils to the start of the CONFIG file
+if ! grep -q "source $BASEDIR/utils/utils.sh" $CONFIGFILE; then
+    echo "source $BASEDIR/utils/utils.sh" | cat - $CONFIGFILE > temp && mv temp $CONFIGFILE
+fi
+
 # Add all files in the source folder to the CONFIGFILE
 _dfi_add_source() { # $1 = file
     if ! grep -q "source $1" $CONFIGFILE; then
         echo "source $1" >> $CONFIGFILE
     fi
 }
-for f in $(find $BASEDIR/source -maxdepth 1 -type f); do
+for f in $(find $BASEDIR/src -maxdepth 1 -type f); do
     if [ -f "$f" ]; then
         _dfi_add_source $f
     fi
