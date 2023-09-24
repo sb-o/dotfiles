@@ -1,3 +1,6 @@
+# Homebrew
+export HOMEBREW_NO_ENV_HINTS=1
+
 # pyenv
 if [ -d "$HOME/.pyenv" ]; then
     export PYENV_ROOT="$HOME/.pyenv"
@@ -19,3 +22,7 @@ if [ -d "$HOME/.nvm" ]; then
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
     fi
 fi
+
+# go
+export GOPATH="$HOME/.go"
+prepend_to_path $GOPATH/bin
