@@ -25,4 +25,6 @@ fi
 
 # go
 export GOPATH="$HOME/.go"
-prepend_to_path $GOPATH/bin
+if command -v go &>/dev/null; then
+    prepend_to_path $GOPATH/bin
+fi

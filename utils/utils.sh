@@ -8,8 +8,8 @@ rld() {
   if grep -q "utils/utils.sh" $HOME/.zshrc; then
     echo "🌀 Reloading zsh shell"
     source $HOME/.zshrc
-  elif grep -q "utils/utils.sh" $HOME/.bashrc; then
-    echo "🌀 Reloading bash shell"
-    source $HOME/.bashrc
+  else
+      echo "Reloading zsh shell. dotfiles not installed."
+    source $HOME/.zshrc
   fi
 }
