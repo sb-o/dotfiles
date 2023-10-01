@@ -2,6 +2,7 @@
 BASEDIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 CONFIGFILE=$HOME/.zshrc
 PLUGINSDIR=$HOME/.zsh_plugins
+NEOVIMDIR=$HOME/.config/nvim
 
 # Create CONFIGFILE and PLUGINSDIR if don't already exist
 if [ ! -f $CONFIGFILE ]; then
@@ -44,4 +45,8 @@ _dfi_install_and_source() { # $1 = plugin, $2 = repo, $3 = file
 _dfi_install_and_source .zsh-syntax-highlighting https://github.com/zsh-users/zsh-syntax-highlighting.git zsh-syntax-highlighting.zsh
 _dfi_install_and_source .zsh-autosuggestions https://github.com/zsh-users/zsh-autosuggestions zsh-autosuggestions.zsh
 
- 
+# Replace nvim configuration
+if [ -d $NEOVIMDIR ]; then
+    mv $NEOVIMDIR "$NEOVIMDIR-backup"
+fi
+ln -s $BASEDIR/nvim $NEOVIMDIR
