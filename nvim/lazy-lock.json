@@ -1,0 +1,8 @@
+{
+  "lazy.nvim": { "branch": "main", "commit": "62745a7320f48a00ac4f7b0591352608cbc6bcea" },
+  "nightfly": { "branch": "master", "commit": "776f6ba8b9324838a250f55937ce7d957f820eeb" },
+  "nvim-treesitter": { "branch": "master", "commit": "957f3f8c15a88ef0f0c77ecd13edf2e2578f176e" },
+  "plenary.nvim": { "branch": "master", "commit": "9ce85b0f7dcfe5358c0be937ad23e456907d410b" },
+  "telescope.nvim": { "branch": "master", "commit": "54930e1abfc94409e1bb9266e752ef8379008592" },
+  "which-key.nvim": { "branch": "main", "commit": "7ccf476ebe0445a741b64e36c78a682c1c6118b7" }
+}
