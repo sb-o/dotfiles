@@ -11,12 +11,16 @@ alias .6='cd ../../../../../../'            # Go back 6 directory levels
 
 listinstalled() {
 	if command -v "brew" &> /dev/null; then
-		echo "\nBREW"
+		echo "\n# brew #\n"
 		brew leaves -r
 	fi
 	if command -v "npm" &> /dev/null; then
-		echo "\nNPM"
+		echo "\n# npm #\n"
 		npm ls -g
+	fi
+	if command -v "pip" &> /dev/null; then
+		echo "\n# python #\n"
+		pip freeze	
 	fi
 }
 
