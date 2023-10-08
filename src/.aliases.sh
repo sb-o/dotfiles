@@ -28,3 +28,42 @@ pyclean () {
     find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
 }
 
+_dfi_django_init() { # $1 = projectname, $2 = version
+	pyenv virtualenv $2 $1 
+	echo "Creating .python-version"
+	pyenv local $1
+	echo "Installing django"
+	pip install django
+	echo "Initialising project"
+	django-admin startproject $1
+	echo "Moving .python-version"
+	mv .python-version $1/.python-version
+	cd $1
+	pip freeze > requirements.txt
+}
+
+djinit() { # $1 = projectname
+	if [[ -z $1 ]] then
+		echo "Requires one argument (projectname)"
+		return
+	fi
+
+	if [ -f '.python-version' ]; then
+		echo "Can only run in a directory where .python-version is not already configured"
+		return
+	fi
+
+	if command -v "pyenv" &> /dev/null; then
+		version=$(pyenv version | cut -d' ' -f1)
+		echo "Creating virtualenv with version $version. Happy to proceed? [y/N]"
+		read continueinput
+		continueinput=$(echo "$continueinput" | tr '[:upper:]' '[:lower:]')
+		if [[ "$continueinput" = "y" ]] then
+			_dfi_django_init $1 $version
+		else
+			echo "Aborting..."
+		fi
+	else
+		echo "pyenv not installed."
+	fi
+}
