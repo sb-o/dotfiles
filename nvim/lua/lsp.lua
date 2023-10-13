@@ -43,9 +43,10 @@ vim.api.nvim_create_autocmd('LspAttach', {
 				}
 			},
 			keymap = {
-				pre_select = true
+				pre_select = false
 			}
 		}
+		vim.api.nvim_set_keymap('i', '<TAB>', 'pumvisible() ? "<C-y>" : "<C-g>u<TAB>"', { expr = true, noremap = true }) -- autocomplete on tab instead
 		vim.cmd('COQnow -s')
 	end,
 })
