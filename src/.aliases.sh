@@ -32,8 +32,8 @@ _dfi_django_init() { # $1 = projectname, $2 = version
 	pyenv virtualenv $2 $1 
 	echo "Creating .python-version"
 	pyenv local $1
-	echo "Installing django"
-	pip install django
+	echo "Installing django and django-stubs"
+	pip install django django-stubs
 	echo "Initialising project"
 	django-admin startproject $1
 	echo "Moving .python-version"
