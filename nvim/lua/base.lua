@@ -2,7 +2,6 @@ vim.wo.number = true
 vim.wo.relativenumber = true
 
 local options = {
-	clipboard = "unnamedplus",
 	cmdheight = 2,
 	fileencoding = "utf-8",
 	hlsearch = true,
