@@ -1,3 +1,12 @@
+-- Treesitter setup
+require('nvim-treesitter.configs').setup {
+	ensure_installed = { "lua", "python", "typescript", "javascript", "tsx", "go" },
+  	highlight = {
+		enable = true
+	}
+}
+
+-- Mason setup
 require("mason").setup()
 require("mason-lspconfig").setup({
 	ensure_installed = { "lua_ls", "pyright", "tsserver" }
