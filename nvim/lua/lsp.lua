@@ -1,12 +1,13 @@
 require("mason").setup()
 require("mason-lspconfig").setup({
-	ensure_installed = { "lua_ls", "pyright" }
+	ensure_installed = { "lua_ls", "pyright", "tsserver" }
 })
 local lspconfig = require("lspconfig")
 
 -- Language servers
 lspconfig.lua_ls.setup {}
 lspconfig.pyright.setup {}
+lspconfig.tsserver.setup {}
 
 vim.api.nvim_create_autocmd('LspAttach', {
 	group = vim.api.nvim_create_augroup('UserLspConfig', {}),
@@ -46,7 +47,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
 				pre_select = false
 			}
 		}
-		vim.api.nvim_set_keymap('i', '<TAB>', 'pumvisible() ? "<C-y>" : "<C-g>u<TAB>"', { expr = true, noremap = true }) -- autocomplete on tab instead
+		-- vim.api.nvim_set_keymap('i', '<TAB>', 'pumvisible() ? "<C-y>" : "<C-g>u<TAB>"', { expr = true, noremap = true }) -- autocomplete on tab instead
 		vim.cmd('COQnow -s')
 	end,
 })
