@@ -28,3 +28,9 @@ export GOPATH="$HOME/.go"
 if command -v go &>/dev/null; then
     prepend_to_path $GOPATH/bin
 fi
+
+# ruby on macOS
+if [ -d "/opt/homebrew/opt/ruby/bin" ]; then
+	prepend_to_path /opt/homebrew/opt/ruby/bin
+	prepend_to_path `gem environment gemdir`/bin
+fi
