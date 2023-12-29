@@ -3,6 +3,7 @@ BASEDIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 CONFIGFILE=$HOME/.zshrc
 PLUGINSDIR=$HOME/.zsh_plugins
 NEOVIMDIR=$HOME/.config/nvim
+EMACSDIR=$HOME/.emacs.d
 
 # Create CONFIGFILE and PLUGINSDIR if don't already exist
 if [ ! -f $CONFIGFILE ]; then
@@ -49,6 +50,7 @@ _dfi_create_symlink() { # $1 = dotfiles source, $2 = home source
 }
 
 _dfi_create_symlink $BASEDIR/nvim $NEOVIMDIR
+_dfi_create_symlink $BASEDIR/emacs $EMACSDIR
 
 for f in $(find $BASEDIR/conf -maxdepth 1 -type f); do
 	if [ -f "$f" ]; then

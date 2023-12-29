@@ -1,0 +1,245 @@
+#+title: Emacs Configuration
+#+startup: overview
+* Getting Started
+** Installing Emacs
+On macOS, Homebrew recommends installing the cask version. This is a prebuilt package from emacsformacosx.com, built on Apple's Cocoa framework. If you don't use the cask version, it installs an older version with fewer features.
+
+brew update
+brew install --cask emacs
+
+** Setting up configuration folder
+By default, the configuration folder is $HOME/.emacs.d. And the configuration file is init.el.
+
+I prefer to symlink the .emacs.d folder to my dotfiles/emacs folder.
+
+* Installing the Configuration 
+** Package manager
+To install third party packages, you need to load the 'package' library into your configuration with (require 'package), and give it the URLs for repositories it can use.
+
+The use-package macro makes it much simpler to define, install and load packages from within an Emacs configuration.
+
+It allows you to specify a package that you require and call commands or set bindings when it initialises.
+
+You install this with (package-install 'use-package) if not currently installed. Then all future packages can simply use the 'use-package' syntax.
+
+Below, we also require bind-key, which provides a more convenient way to set keybindings in here.
+
+#+begin_src emacs-lisp
+  ;; PACKAGE MANAGER
+  (require 'package)
+  (setq package-archives '(
+      ("gnu"   . "https://elpa.gnu.org/packages/")
+      ("melpa" . "https://melpa.org/packages/")
+      ("org" . "https://orgmode.org/elpa/")
+  ))
+  (package-initialize) 
+  (unless package-archive-contents
+      (package-refresh-contents))
+  (unless (package-installed-p 'use-package)
+      (package-install 'use-package))
+  (require 'use-package)
+  (setq use-package-always-ensure t)
+  (require 'bind-key) 
+#+end_src
+** Allow this code to be tangled into init.el 
+To load the code in this document into Emacs, you add the line (org-babel-load-file (expand-file-name ".emacs.d/Emacs.org")) into the init.el file.
+
+When it loads, it will tangle all the code in this file into the configuration.
+
+For simplicity, I'm also moving custom-set-variables and custom-set-faces into a separate file, as they are modified automatically. The code below does this. 
+
+#+begin_src emacs-lisp
+    (setq custom-file "~/.emacs.d/custom.el")
+    (load custom-file)
+#+end_src
+
+
+*** TODO Amend tangle function so that it checks for errors before proceeding.
+We can check for bracket mismatch as a starter. Flycheck could also check for other errors.
+
+*** TODO Amend tangle function to create a custom.el file if one does not exist already.
+I had an error where if custom.el doesn't exist already, it wouldn't load it into it. I want to create the file if it doesn't already exist.
+
+** Basic settings
+There are a number of basic settings we want in place immediately, to make the user experience less annoying.
+
+1. Disable the bell.
+#+begin_src emacs-lisp
+  (setq ring-bell-function 'ignore)
+#+end_src
+
+2. Get rid of the start screen, initial scratch message, menu bar, and if it's a GUI version of Emacs, get rid of the toolbar, scrollbar and tooltips. 
+
+There are some differences in how you configure this in emacsclient (when you have a daemon running in the background) versus normal GUI emacs versus terminal emacs. The below seems to avoid errors.
+
+#+begin_src emacs-lisp
+  (setq inhibit-startup-screen t)
+  (setq initial-scratch-message nil)
+
+  ; To disable menu bar
+  (menu-bar-mode -1)
+
+  ; To disable on emacsclient
+  (setq tool-bar-mode nil)
+  (setq scroll-bar-mode nil)
+  (setq tooltip-mode nil)
+
+  ; To disable on emacs GUI
+  (if (or (display-graphic-p) window-system)
+  (progn (tool-bar-mode -1) (scroll-bar-mode -1) (tooltip-mode -1))
+  )
+#+end_src
+
+3. Move all of the backup and autosave files to the temp directory, so they don't clutter up the folder you're working in. You can check what the temporary-file-directory is using M-x describe-variable.
+#+begin_src emacs-lisp
+  (setq backup-directory-alist
+	  `((".*" . ,temporary-file-directory)))
+  (setq auto-save-file-name-transforms
+	  `((".*" ,temporary-file-directory t)))
+#+end_src
+
+4. Don't warn if visiting symbolic file under version control, just visit the real file. Emacs warns you that visiting a symbolic link to a file under version control bypasses the version control system.
+#+begin_src emacs-lisp
+  (setq vc-follow-symlinks t)
+#+end_src
+
+5. "y" or "n", not "yes" or "no"
+#+begin_src emacs-lisp
+  (fset 'yes-or-no-p 'y-or-n-p)
+#+end_src
+
+6. Ctrl-S should save files, as I press it out of habit.
+#+begin_src emacs-lisp
+ (global-set-key (kbd "C-s") 'save-buffer)
+#+end_src
+
+7. Words should wrap if they are too long.
+#+begin_src emacs-lisp
+  (global-visual-line-mode t) 
+#+end_src
+
+* Theme, Modeline and Which Key
+** Theme
+Kaolin Galaxy theme
+#+begin_src emacs-lisp
+  (use-package kaolin-themes 
+       :config
+       (load-theme 'kaolin-galaxy t)
+   )
+#+end_src
+
+** Modeline
+Doom Modeline creates a cleaner modeline at the bottom. It's used in Doom Emacs and Spacemacs.
+
+For the icons to work, you need to have Nerd Fonts to be installed on your system. You can easily do this with M-x nerd-icons-install-fonts, and it installs to your systems fonts folder.
+
+#+begin_src emacs-lisp
+  (use-package doom-modeline
+    :ensure t
+    :init (doom-modeline-mode 1))
+#+end_src
+
+** Which Key
+This displays the key bindings available for each prefix, making it easier to remember and see what remains unbound.
+
+#+begin_src emacs-lisp
+  (use-package which-key
+  :init
+  (which-key-mode))
+#+end_src
+
+* Completion Stack
+** Overview
+Within Emacs, you will want a good system for autocompletion so that you can search for what you need faster.
+
+Popular stacks are *Ivy + Counsel + Swiper* and *Vertico + Consult + Orderless + Embark + Marginalia + Corfu*.
+
+*** Older versions
+*ido* - the built in package ("interactive do").
+
+*Helm* - older framework for completions and narrowing selections, although still widely used.
+
+*** Ivy + Counsel + Swiper
+*Ivy* - this is a more efficient and user-friendly completion system. It displays options in a vertical list and narrows them down as you type.
+
+*Counsel* - this allows you to run common Emacs commands through the Ivy completion / narrowing system. For example, M-x. Counsel creates a bunch of commands like counsel-M-x which replaces the default M-x.
+
+*Swiper* - this is a search tool that integrates with Ivy. When you search for a text string in a buffer using Swiper, it uses Ivy to display the search results.
+
+*** Vertico + Consult + Orderless + Embark + Marginalia (+ Corfu)
+*Vertico* - A lightweight and efficient alternative to Ivy. Unlike Helm and Ivy, it plugs in directly to Emacs' own completion engine instead of having its own layer on top, so all existing completion commands in Emacs use Vertico's UI.
+
+*Consult* - Adds further functionality to the completion engine - e.g. ripgrep.
+
+*Orderless* - allows you to match out of order. Supports strings, regex, initialism, literal matches etc. E.g. "name buffer" will match "buffer-name".
+
+*Embark* - allows you to carry out context-dependent actions on targets. This could be results in the minibuffer, or something in a file. E.g. open a URL in the browser.
+
+*Marginalia* - adds extra information in the minibuffer when you are searching (e.g. for find file, you can see the file permissions, creator, date).
+
+*Corfu* - brings completion engine inline, with a small popup.
+
+** Vertico Stack
+
+#+begin_src emacs-lisp
+  (use-package vertico
+    :ensure t
+    :init (vertico-mode))
+
+  (use-package consult)
+
+  (use-package orderless
+    :ensure t
+    :custom (completion-styles '(orderless basic))
+    (completion-category-overrides '((file (styles basic partial-completion))))) ; recommended settings
+
+  (use-package marginalia
+    ; :bind (:map minibuffer-local-map ("M-A" . marginalia-cycle)) ; allows you to cycle it on or off
+    :init (marginalia-mode))
+#+end_src
+
+* Evil Mode
+Evil mode is a vi layer for Emacs, allowing you to use vim bindings.
+
+There are some configuration steps we need to take to ensure Evil mode works seamlessly across Emacs. This includes:
+
+- Installing evil-collection, which includes keybindings for parts of Emacs that are not covered by default, such as help-mode, calendar and eshell. This requires evil-want-keybinding to be set to nil before evil loads.
+
+- Installing evil-org, to ensure evil mode keybindings work in org-mode (e.g. org agenda, org calendar, tables).
+
+- Running Emacs with Evil mode in a terminal breaks the tab key for cycling through header visibility in Org mode. Terminals usually map Tab and C-i to U+0009 (Character Tabulation) for historical reasons, so they are recognised as the same key press. Evil remaps C-i to evil-jump-forward, which overrides the default mapping for org mode's Tab. This sacrifices the C-i backward jumping by turning it off on terminal. It has to be set before Evil mode is loaded. I am just disabling it regardless of terminal/GUI for ease, until I can find a better solution.
+  
+- evil-want-fine-undo needs to be set to true, to stop 'undo' from deleting whole paragraphs. Instead, undo steps are determined according to Emacs heuristics. 
+  
+#+begin_src emacs-lisp
+  (use-package evil
+    :init
+    (setq evil-want-C-i-jump nil)
+    (setq evil-want-keybinding nil) 
+    (setq evil-want-fine-undo t) 
+    :config
+    (evil-mode 1)
+    )
+  (use-package evil-collection
+    :after evil
+    :config
+    (evil-collection-init)
+    )
+  (use-package evil-org
+    :after (org evil-collection)
+    :hook (org-mode . (lambda () evil-org-mode))
+    :config
+    (require 'evil-org-agenda)
+    (evil-org-agenda-set-keys)
+    )
+#+end_src
+
+* Org Mode
+When using M-RET to create a new heading, by default it splits the heading text. This overrides so it just creates a new heading.
+
+#+begin_src emacs-lisp
+  (setq initial-major-mode 'org-mode)
+  (setq org-ellipsis " ▾") 
+  (setq org-M-RET-may-split-line nil)
+#+end_src
+

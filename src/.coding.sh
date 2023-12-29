@@ -7,13 +7,14 @@ if [ -d "$HOME/.pyenv" ]; then
     prepend_to_path $PYENV_ROOT/bin
     eval "$(pyenv init --path)"
     eval "$(pyenv init -)"
+
+	# pyenv-virtualenv
+	if [ -d "$PYENV_ROOT/plugins/pyenv-virtualenv" ]; then
+		export PYENV_VIRTUALENV_DISABLE_PROMPT=1
+		eval "$(pyenv virtualenv-init -)"
+	fi
 fi
 
-# pyenv-virtualenv
-if [ -d "$PYENV_ROOT/plugins/pyenv-virtualenv" ]; then
-    export PYENV_VIRTUALENV_DISABLE_PROMPT=1
-    eval "$(pyenv virtualenv-init -)"
-fi
 
 # nvm
 if [ -d "$HOME/.nvm" ]; then
