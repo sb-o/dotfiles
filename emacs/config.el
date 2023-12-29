@@ -53,12 +53,6 @@
      (load-theme 'kaolin-galaxy t)
  )
 
-;  (set-face-attribute 'default nil
- ;     :family "Consolas"
-  ;    :height 140 
-   ;   :weight 'normal
-    ;  )
-
 (use-package doom-modeline
   :ensure t
   :init (doom-modeline-mode 1))
@@ -72,6 +66,11 @@
   :init (vertico-mode))
 
 (use-package consult)
+
+(use-package orderless
+  :ensure t
+  :custom (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion))))) ; recommended settings
 
 (use-package marginalia
   ; :bind (:map minibuffer-local-map ("M-A" . marginalia-cycle)) ; allows you to cycle it on or off
