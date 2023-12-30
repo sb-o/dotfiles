@@ -24,6 +24,25 @@ listinstalled() {
 	fi
 }
 
+emacskill () {
+	emacsclient -e '(save-buffers-kill-emacs)'
+}
+
+emacsrestart() {
+	emacsclient -e '(save-buffers-kill-emacs)' && emacs --daemon
+}
+
+emacs() {
+    if emacsclient -e "(print t)" > /dev/null 2>&1; then
+        emacsclient -c -a "" "$@"
+    else
+        command emacs "$@"
+    fi
+}
+
+
+
+
 pyclean () {
     find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
 }

@@ -1,5 +1,7 @@
 #+title: Emacs Configuration
 #+startup: overview
+
+
 * Getting Started
 ** Installing Emacs
 On macOS, Homebrew recommends installing the cask version. This is a prebuilt package from emacsformacosx.com, built on Apple's Cocoa framework. If you don't use the cask version, it installs an older version with fewer features.
@@ -11,6 +13,16 @@ brew install --cask emacs
 By default, the configuration folder is $HOME/.emacs.d. And the configuration file is init.el.
 
 I prefer to symlink the .emacs.d folder to my dotfiles/emacs folder.
+
+** Load in system-specific files (local.el)
+Each computer I use may have its files structured differently. Therefore, I create a separate local.el file which sets some variables used in this file, which can be modified to be specific to the system. Defaults for these variables are defined below.
+
+#+begin_src emacs-lisp
+  ; Load in system-specific variables
+  (let ((file "~/.emacs.d/local.el"))
+    (when (file-exists-p file)
+      (load file)))
+#+end_src
 
 * Installing the Configuration 
 ** Package manager
@@ -41,6 +53,7 @@ Below, we also require bind-key, which provides a more convenient way to set key
   (setq use-package-always-ensure t)
   (require 'bind-key) 
 #+end_src
+
 ** Allow this code to be tangled into init.el 
 To load the code in this document into Emacs, you add the line (org-babel-load-file (expand-file-name ".emacs.d/Emacs.org")) into the init.el file.
 
@@ -52,13 +65,6 @@ For simplicity, I'm also moving custom-set-variables and custom-set-faces into a
     (setq custom-file "~/.emacs.d/custom.el")
     (load custom-file)
 #+end_src
-
-
-*** TODO Amend tangle function so that it checks for errors before proceeding.
-We can check for bracket mismatch as a starter. Flycheck could also check for other errors.
-
-*** TODO Amend tangle function to create a custom.el file if one does not exist already.
-I had an error where if custom.el doesn't exist already, it wouldn't load it into it. I want to create the file if it doesn't already exist.
 
 ** Basic settings
 There are a number of basic settings we want in place immediately, to make the user experience less annoying.
@@ -98,6 +104,7 @@ There are some differences in how you configure this in emacsclient (when you ha
 	  `((".*" ,temporary-file-directory t)))
 #+end_src
 
+
 4. Don't warn if visiting symbolic file under version control, just visit the real file. Emacs warns you that visiting a symbolic link to a file under version control bypasses the version control system.
 #+begin_src emacs-lisp
   (setq vc-follow-symlinks t)
@@ -117,6 +124,59 @@ There are some differences in how you configure this in emacsclient (when you ha
 #+begin_src emacs-lisp
   (global-visual-line-mode t) 
 #+end_src
+
+* Evil Mode
+Evil mode is a vi layer for Emacs, allowing you to use vim bindings.
+
+There are some configuration steps we need to take to ensure Evil mode works seamlessly across Emacs. This includes:
+
+- Installing evil-collection, which includes keybindings for parts of Emacs that are not covered by default, such as help-mode, calendar and eshell. This requires evil-want-keybinding to be set to nil before evil loads.
+
+- Installing evil-org, to ensure evil mode keybindings work in org-mode (e.g. org agenda, org calendar, tables).
+
+- Running Emacs with Evil mode in a terminal breaks the tab key for cycling through header visibility in Org mode. Terminals usually map Tab and C-i to U+0009 (Character Tabulation) for historical reasons, so they are recognised as the same key press. Evil remaps C-i to evil-jump-forward, which overrides the default mapping for org mode's Tab. This sacrifices the C-i backward jumping by turning it off on terminal. It has to be set before Evil mode is loaded. I am just disabling it regardless of terminal/GUI for ease, until I can find a better solution.
+  
+- evil-want-fine-undo needs to be set to true, to stop 'undo' from deleting whole paragraphs. Instead, undo steps are determined according to Emacs heuristics. 
+  
+#+begin_src emacs-lisp
+  (use-package evil
+    :init
+    (setq evil-want-C-i-jump nil)
+    (setq evil-want-keybinding nil) 
+    (setq evil-want-fine-undo t) 
+    :config
+    (evil-mode 1)
+    )
+  (use-package evil-collection
+    :after evil
+    :config
+    (evil-collection-init)
+    )
+  (use-package evil-org
+    :after (org evil-collection)
+    :hook (org-mode . (lambda () evil-org-mode))
+    :config
+    (require 'evil-org-agenda)
+    (evil-org-agenda-set-keys)
+    )
+#+end_src
+
+* Main Keyboard Shortcuts
+** Ctrl-C A -> Bookmarks
+#+begin_src emacs-lisp
+  (defvar sb-bookmarks (make-sparse-keymap) "sb Bookmarks")
+  (bind-key "C-c a" sb-bookmarks)
+  (bind-key "c" (lambda () (interactive) (find-file "~/.emacs.d/config.org")) sb-bookmarks)
+  (bind-key "i" (lambda () (interactive) (find-file "~/sb/inbox.org")) sb-bookmarks)
+
+  (which-key-add-key-based-replacements
+    "C-c a" "sb bookmarks"
+    "C-c a c" "config.org"
+    "C-c a i" "inbox.org")
+
+#+end_src
+
+
 
 * Theme, Modeline and Which Key
 ** Theme
@@ -138,6 +198,7 @@ For the icons to work, you need to have Nerd Fonts to be installed on your syste
     :ensure t
     :init (doom-modeline-mode 1))
 #+end_src
+
 
 ** Which Key
 This displays the key bindings available for each prefix, making it easier to remember and see what remains unbound.
@@ -198,48 +259,66 @@ Popular stacks are *Ivy + Counsel + Swiper* and *Vertico + Consult + Orderless +
     :init (marginalia-mode))
 #+end_src
 
-* Evil Mode
-Evil mode is a vi layer for Emacs, allowing you to use vim bindings.
-
-There are some configuration steps we need to take to ensure Evil mode works seamlessly across Emacs. This includes:
-
-- Installing evil-collection, which includes keybindings for parts of Emacs that are not covered by default, such as help-mode, calendar and eshell. This requires evil-want-keybinding to be set to nil before evil loads.
-
-- Installing evil-org, to ensure evil mode keybindings work in org-mode (e.g. org agenda, org calendar, tables).
-
-- Running Emacs with Evil mode in a terminal breaks the tab key for cycling through header visibility in Org mode. Terminals usually map Tab and C-i to U+0009 (Character Tabulation) for historical reasons, so they are recognised as the same key press. Evil remaps C-i to evil-jump-forward, which overrides the default mapping for org mode's Tab. This sacrifices the C-i backward jumping by turning it off on terminal. It has to be set before Evil mode is loaded. I am just disabling it regardless of terminal/GUI for ease, until I can find a better solution.
-  
-- evil-want-fine-undo needs to be set to true, to stop 'undo' from deleting whole paragraphs. Instead, undo steps are determined according to Emacs heuristics. 
-  
-#+begin_src emacs-lisp
-  (use-package evil
-    :init
-    (setq evil-want-C-i-jump nil)
-    (setq evil-want-keybinding nil) 
-    (setq evil-want-fine-undo t) 
-    :config
-    (evil-mode 1)
-    )
-  (use-package evil-collection
-    :after evil
-    :config
-    (evil-collection-init)
-    )
-  (use-package evil-org
-    :after (org evil-collection)
-    :hook (org-mode . (lambda () evil-org-mode))
-    :config
-    (require 'evil-org-agenda)
-    (evil-org-agenda-set-keys)
-    )
-#+end_src
-
 * Org Mode
-When using M-RET to create a new heading, by default it splits the heading text. This overrides so it just creates a new heading.
+Org Mode is built in. Here are some basic improvements and fixes.
+
+1. Org Mode is the default in scratch.
+
+2. Hide the leading * in bullets.
+
+3. Virtually indent text under subheadings, to make it visually clearer. This also, by default, hides the leading * in bullets.
+
+4. Change the "..." at the end of headings to a downwards arrow.
+
+5. Hide emphasis markers with bold, italics, underline etc.
+
+6. org-cycle-separator-lines maintains visible empty lines when opening and closing headings. By default the value is 2, meaning at least two empty lines are needed after the end of a heading for it to be visible when folded. Changing this to 1 makes it easier to manage.
+
+7. When using M-RET to create a new heading, by default it splits the heading text. This overrides so it just creates a new heading.
+
+8. Setting a maximum character count for when org-clock puts the current task on the modeline.
+
+9. Set the org-agenda files list (from local.el)
 
 #+begin_src emacs-lisp
-  (setq initial-major-mode 'org-mode)
-  (setq org-ellipsis " ▾") 
-  (setq org-M-RET-may-split-line nil)
+  (use-package org
+    :init
+    (setq initial-major-mode 'org-mode)
+    (setq org-hide-leading-stars t)
+    (setq org-startup-indented t)
+    (setq org-ellipsis " ▾") 
+    (setq org-hide-emphasis-markers t)
+    (setq org-cycle-separator-lines 1)
+    (setq org-M-RET-may-split-line nil)
+    (setq org-clock-string-limit 50)
+    (setq org-agenda-files sb-org-agenda-files)
+   )
 #+end_src
+** Font Lock Substitutions
+This substitutes the "-" in org mode lists for a dot character, so they look more like bulletpoints.
+
+#+begin_src emacs-lisp 
+  (font-lock-add-keywords 'org-mode
+			  '(("^ *\\([-]\\) "
+			     (0 (prog1 () (compose-region   (match-beginning 1) (match-end 1) "•"))))))
+
+#+end_src
+
+** Org Roam
+
+#+begin_src emacs-lisp
+  (use-package org-roam
+    :custom
+    (org-roam-directory sb-org-roam-directory)
+    :bind
+    (("C-c n l" . org-roam-buffer-toggle)
+     ("C-c n f" . org-roam-node-find)
+     ("C-c n g" . org-roam-graph)
+     ("C-c n i" . org-roam-node-insert)
+     ("C-c n c" . org-roam-capture))
+    )
+    :config
+    (org-roam-db-autosync-mode)
+#+end_src
+
 

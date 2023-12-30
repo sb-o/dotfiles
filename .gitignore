@@ -1,6 +1,10 @@
-emacs/auto-save-list
-emacs/elpa
-emacs/transient
+emacs/*
+!config.org
+!config.el
+!custom.el
+!init.el
+!local-template.el
+
 
 # General
 .DS_Store

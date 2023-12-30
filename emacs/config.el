@@ -1,3 +1,8 @@
+; Load in system-specific variables
+(let ((file "~/.emacs.d/local.el"))
+  (when (file-exists-p file)
+    (load file)))
+
 ;; PACKAGE MANAGER
 (require 'package)
 (setq package-archives '(
@@ -48,6 +53,37 @@
 
 (global-visual-line-mode t)
 
+(use-package evil
+  :init
+  (setq evil-want-C-i-jump nil)
+  (setq evil-want-keybinding nil) 
+  (setq evil-want-fine-undo t) 
+  :config
+  (evil-mode 1)
+  )
+(use-package evil-collection
+  :after evil
+  :config
+  (evil-collection-init)
+  )
+(use-package evil-org
+  :after (org evil-collection)
+  :hook (org-mode . (lambda () evil-org-mode))
+  :config
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys)
+  )
+
+(defvar sb-bookmarks (make-sparse-keymap) "sb Bookmarks")
+(bind-key "C-c a" sb-bookmarks)
+(bind-key "c" (lambda () (interactive) (find-file "~/.emacs.d/config.org")) sb-bookmarks)
+(bind-key "i" (lambda () (interactive) (find-file "~/sb/inbox.org")) sb-bookmarks)
+
+(which-key-add-key-based-replacements
+  "C-c a" "sb bookmarks"
+  "C-c a c" "config.org"
+  "C-c a i" "inbox.org")
+
 (use-package kaolin-themes 
      :config
      (load-theme 'kaolin-galaxy t)
@@ -76,27 +112,32 @@
   ; :bind (:map minibuffer-local-map ("M-A" . marginalia-cycle)) ; allows you to cycle it on or off
   :init (marginalia-mode))
 
-(use-package evil
+(use-package org
   :init
-  (setq evil-want-C-i-jump nil)
-  (setq evil-want-keybinding nil) 
-  (setq evil-want-fine-undo t) 
-  :config
-  (evil-mode 1)
-  )
-(use-package evil-collection
-  :after evil
-  :config
-  (evil-collection-init)
-  )
-(use-package evil-org
-  :after (org evil-collection)
-  :hook (org-mode . (lambda () evil-org-mode))
-  :config
-  (require 'evil-org-agenda)
-  (evil-org-agenda-set-keys)
-  )
+  (setq initial-major-mode 'org-mode)
+  (setq org-hide-leading-stars t)
+  (setq org-startup-indented t)
+  (setq org-ellipsis " ▾") 
+  (setq org-hide-emphasis-markers t)
+  (setq org-cycle-separator-lines 1)
+  (setq org-M-RET-may-split-line nil)
+  (setq org-clock-string-limit 50)
+  (setq org-agenda-files sb-org-agenda-files)
+ )
 
-(setq initial-major-mode 'org-mode)
-(setq org-ellipsis " ▾") 
-(setq org-M-RET-may-split-line nil)
+(font-lock-add-keywords 'org-mode
+			'(("^ *\\([-]\\) "
+			   (0 (prog1 () (compose-region   (match-beginning 1) (match-end 1) "•"))))))
+
+(use-package org-roam
+  :custom
+  (org-roam-directory sb-org-roam-directory)
+  :bind
+  (("C-c n l" . org-roam-buffer-toggle)
+   ("C-c n f" . org-roam-node-find)
+   ("C-c n g" . org-roam-graph)
+   ("C-c n i" . org-roam-node-insert)
+   ("C-c n c" . org-roam-capture))
+  )
+  :config
+  (org-roam-db-autosync-mode)
